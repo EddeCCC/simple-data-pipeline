@@ -2,7 +2,7 @@ import streamlit as st
 import duckdb as db
 from enum import Enum
 
-DB_PATH = "database/warehouse.duckdb"
+DB_PATH = "../database/warehouse.duckdb"
 TABLE_NAME = "users"
 
 class UserStatus(Enum):

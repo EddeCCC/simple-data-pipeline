@@ -2,7 +2,18 @@
 
 Showcase for data pipelines
 
+## Prerequisites
+
+```sh
+pip install -r requirements.txt
+```
+
 ## Commands
+
+Run pipeline:
+```sh
+./pipeline.sh
+```
 
 Create warehouse:
 ```sh
