@@ -1,0 +1,6 @@
+
+version: 2
+
+models:
+  - name: users_loyal
+    description: "The 10 most loyal users"
