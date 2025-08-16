@@ -3,4 +3,4 @@ transformation:
   outputs:
     dev:
       type: duckdb
-      path: ../database/warehouse.duckdb
+      path: database/warehouse.duckdb

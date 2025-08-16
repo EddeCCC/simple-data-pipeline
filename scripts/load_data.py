@@ -1,4 +1,5 @@
 import duckdb as db
+from prefect.blocks.system import Secret
 import os
 from logger import logging as log
 
@@ -12,7 +13,7 @@ if __name__ == "__main__":
         print(f"Data not found: {data}")
         exit(1)
 
-    db_file = "database/warehouse.duckdb"
+    db_file = Secret.load("database").get()
     with db.connect(db_file) as con:
         con.sql(f"CREATE OR REPLACE TABLE '{TABLE_NAME}' AS SELECT * FROM '{data}';")
         count = con.sql(f"SELECT COUNT(*) FROM '{TABLE_NAME}'").fetchone()[0]
