@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 import duckdb as db
 from duckdb.duckdb import DuckDBPyConnection
 from duckdb.experimental.spark import DataFrame
@@ -21,7 +22,7 @@ class SortOption(Enum):
     SIGNUP_DATE_ASC = "signup date (oldest)"
 
 
-def build_all_users_query(status: UserStatus, sort: SortOption) -> str:
+def build_users_query(status: UserStatus, sort: SortOption) -> str:
     """Build an SQL query based on filters and sort order"""
     query = f"SELECT * FROM {TABLE_NAME}"
 
@@ -45,30 +46,35 @@ def build_loyal_users_query() -> str:
 # ------------------------
 # Load data into dashboard
 # ------------------------
-con = db.connect(DB_PATH)
+
+# Use still need to refresh the website manually to view new data
+st_autorefresh(interval=60_000, key="data_refresh")
 
 st.title("Simple Dashboard")
 st.sidebar.header("Filter")
 
-status_filter = st.sidebar.selectbox("User status", list(UserStatus), format_func=lambda status: status.value)
-sort_option = st.sidebar.selectbox("Sort by", list(SortOption), format_func=lambda option: option.value)
+with db.connect(DB_PATH) as con:
+    status_filter = st.sidebar.selectbox("User status", list(UserStatus), format_func=lambda status: status.value)
+    sort_option = st.sidebar.selectbox("Sort by", list(SortOption), format_func=lambda option: option.value)
+    query = build_users_query(status_filter, sort_option)
+    users = con.execute(query).df()
 
-columns = ["name", "email", "signup", "active", "age"]
-query = build_all_users_query(status_filter, sort_option)
-df = con.execute(query).df()
-df["signup_date"] = df["signup_date"].dt.strftime("%Y-%m-%d")               # fix date format
-df = df.rename(columns={"signup_date": "signup", "is_active": "active"})    # fix column names
+    query = build_loyal_users_query()
+    users_loyal = con.execute(query).df()
+
+users["signup_date"] = users["signup_date"].dt.strftime("%Y-%m-%d")               # fix date format
+users = users.rename(columns={"signup_date": "signup", "is_active": "active"})    # fix column names
 
 st.subheader("All Users")
-st.dataframe(df[columns], use_container_width=True)
+columns = ["name", "email", "signup", "active", "age"]
+st.dataframe(users[columns], use_container_width=True)
 
 st.subheader("Statistics")
 col1, col2, col3 = st.columns(3)
-col1.metric("Total", len(df))
-col2.metric("Avg age", round(df["age"].mean(), 1))
-col3.metric("Active users", df["active"].sum())
+
+col1.metric("Total", len(users))
+col2.metric("Avg age", round(users["age"].mean(), 1))
+col3.metric("Active users", users["active"].sum())
 
 st.subheader("Most Loyal Users")
-query = build_loyal_users_query()
-df = con.execute(query).df()
-st.dataframe(df, use_container_width=True)
+st.dataframe(users_loyal, use_container_width=True)

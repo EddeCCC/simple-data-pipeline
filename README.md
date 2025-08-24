@@ -1,6 +1,15 @@
 # Simple Data Pipeline
 
-Showcase for data pipelines with duckDB, dbt, streamlit and prefect.
+Showcase for data pipelines with DuckDB, dbt, Streamlit and Prefect.
+
+The pipeline is scheduled to run every minute via Prefect.
+
+Fake users will be created, cleaned and loaded into a DuckDB file.
+Additionally, we transform loaded data via dbt.
+A dashboard shows the final user data.
+
+- Dashboard: http://localhost:8501/
+- Prefect Server: http://localhost:4200/
 
 ## Prerequisites
 
@@ -12,8 +21,10 @@ pip install -r requirements.txt
 
 Run pipeline:
 ```sh
-python pipeline.py
+./run-pipeline.sh
 ```
+
+### Sub-Commands
 
 Create warehouse:
 ```sh

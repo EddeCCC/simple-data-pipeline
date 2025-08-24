@@ -1,6 +1,8 @@
 from prefect import flow, task
 from prefect.blocks.system import Secret
+from prefect.schedules import Interval
 from pydantic import SecretStr
+from datetime import timedelta
 import subprocess
 import duckdb
 import os
@@ -37,18 +39,18 @@ def transform_data():
         "--profile", "transformation"
     ], check=True)
 
-@task(retries=2, retry_delay_seconds=5)
-def start_dashboard():
-    subprocess.run(["streamlit", "run", "scripts/dashboard.py"], check=True)
-
-@flow
+@flow(log_prints=True)
 def pipeline():
     setup_database()
     generate_data()
     clean_data()
     load_data()
     transform_data()
-    start_dashboard()
 
 if __name__ == "__main__":
-    pipeline()
+    pipeline.serve(
+        name="simple-pipeline",
+        schedule=Interval(
+            timedelta(minutes=1),
+        )
+    )
